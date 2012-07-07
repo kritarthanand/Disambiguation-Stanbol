@@ -163,8 +163,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
      * Contains the only supported mime type {@link #PLAIN_TEXT_MIMETYPE}
      */
 
- @Reference
-    protected Entityhub entityhub;
+
     public static final Set<String> SUPPORTED_MIMETYPES = Collections.singleton(PLAIN_TEXT_MIMETYPE);
 
     
@@ -278,7 +277,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
    				 String language=""; //the language of the analyzed text
     			String extractionContext; //the surrounding text of the extraction
         
-        	FieldQuery query =entityhub.getQueryFactory().createFieldQuery();
+        	FieldQuery query =dbpediaReferencedSite.getQueryFactory().createFieldQuery();
 
 
         Constraint labelConstraint;
@@ -302,7 +301,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
 //SimilarityConstraint(extractionContext));
 
       query.setLimit(Math.max(20,9));
-       QueryResultList<Entity> results = entityhub.findEntities(query);
+       QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
        
          JOptionPane.showMessageDialog(null, results.size());  
         
