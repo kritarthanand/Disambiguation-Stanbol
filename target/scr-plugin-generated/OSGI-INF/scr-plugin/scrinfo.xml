@@ -10,5 +10,7 @@
         <property name="org.formcept.engine.enhancer.url" type="String" value="https://www.formcept.com/analyze" private="false"/>
         <property name="service.vendor" type="String" value="FORMCEPT" private="true"/>
         <property name="service.pid" value="org.formcept.engine.enhancer.FCDEnhancer" private="false"/>
+        <reference name="siteManager" interface="org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteManager" cardinality="1..1" policy="static" bind="bindSiteManager" unbind="unbindSiteManager" checked="true" strategy="event"/>
+        <reference name="entityhub" interface="org.apache.stanbol.entityhub.servicesapi.Entityhub" cardinality="1..1" policy="static" bind="bindEntityhub" unbind="unbindEntityhub" checked="true" strategy="event"/>
     </scr:component>
 </components>

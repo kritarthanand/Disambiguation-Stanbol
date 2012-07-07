@@ -17,10 +17,12 @@ package org.formcept.engine.enhancer;
 
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_TYPE;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTION_CONTEXT;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -98,6 +100,33 @@ import org.apache.stanbol.enhancer.servicesapi.rdf.OntologicalClasses;
 import org.apache.stanbol.enhancer.servicesapi.rdf.TechnicalClasses;
 
 import org.apache.clerezza.rdf.core.MGraph;
+import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSite;
+import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteException;
+import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteManager;
+import org.apache.stanbol.entityhub.servicesapi.query.Constraint;
+import org.apache.stanbol.entityhub.servicesapi.query.FieldQuery;
+import org.apache.stanbol.entityhub.servicesapi.query.QueryResultList;
+import org.apache.stanbol.entityhub.servicesapi.query.ReferenceConstraint;
+import org.apache.stanbol.entityhub.servicesapi.query.TextConstraint;
+import org.apache.stanbol.entityhub.servicesapi.model.Entity;
+import org.apache.stanbol.entityhub.servicesapi.model.Representation;
+import org.apache.stanbol.entityhub.servicesapi.model.Text;
+import org.apache.stanbol.entityhub.servicesapi.model.rdf.RdfResourceEnum;
+import org.apache.stanbol.entityhub.servicesapi.Entityhub;
+import org.apache.stanbol.entityhub.servicesapi.EntityhubException;
+//import org.apache.stanbol.entityhub.servicesapi.defaults;
+
+
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.ReferenceStrategy;
+import org.apache.felix.scr.annotations.Service;
 
 /**
  * Simple Enhancer
@@ -125,12 +154,17 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
      * The default value for the Execution of this Engine. Currently set to
      * {@link ServiceProperties#ORDERING_EXTRACTION_ENHANCEMENT} + 17. It should run after Metaxa and LangId.
      */
-    public static final Integer defaultOrder = ServiceProperties.ORDERING_EXTRACTION_ENHANCEMENT -1000;
+    public static final Integer defaultOrder = ServiceProperties.ORDERING_EXTRACTION_ENHANCEMENT -10;
     public static final String PLAIN_TEXT_MIMETYPE = "text/plain";
 
+   @Reference
+    protected ReferencedSiteManager siteManager;
     /**
      * Contains the only supported mime type {@link #PLAIN_TEXT_MIMETYPE}
      */
+
+ @Reference
+    protected Entityhub entityhub;
     public static final Set<String> SUPPORTED_MIMETYPES = Collections.singleton(PLAIN_TEXT_MIMETYPE);
 
     
@@ -214,7 +248,6 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                     	// this is not the most specific occurrence of this name: skip
                        	      continue;
                       	}
-          
                		// NamedEntity namedEntity = NamedEntity.createFromTextAnnotation(graph, uri);
                 	//if(namedEntity != null){
                     // This is a first occurrence, collect any subsumed annotations
@@ -223,10 +256,11 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                     for (Iterator<Triple> it2 = graph.filter(null, DC_RELATION, uri); it2.hasNext();) 
                     	{
                       		UriRef uri1 = (UriRef) it2.next().getSubject();
-                    	String name1 = EnhancementEngineHelper.getString(graph, uri, ENHANCER_ENTITY_TYPE);
+                    	String name1 = EnhancementEngineHelper.getString(graph, uri1, DC_TYPE);
 				          JOptionPane.showMessageDialog(null, "++"+name1);   
 
                       		subsumed.add(uri1);
+
                     	}
                     	
                     //textAnnotations.put(namedEntity, subsumed);
@@ -235,6 +269,52 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         } finally {
             ci.getLock().readLock().unlock();
         }
+        ReferencedSite dbpediaReferencedSite=null;
+        try{
+     // ReferencedSiteManager siteManager=new ReferencedSiteManager();
+        dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
+        	String label="Paris"; //the selected text of the TextAnnotation to disambiguate
+			    Collection<String> types=null; //potential types of entities
+   				 String language=""; //the language of the analyzed text
+    			String extractionContext; //the surrounding text of the extraction
+        
+        	FieldQuery query =entityhub.getQueryFactory().createFieldQuery();
+
+
+        Constraint labelConstraint;
+        //TODO: make case sensitivity configurable
+        boolean casesensitive = false;
+        String namedEntityLabel = casesensitive ? label : label.toLowerCase();
+       if(language != null){
+            //search labels in the language and without language
+            labelConstraint = new TextConstraint(namedEntityLabel,casesensitive,language,null);
+        } else {
+            labelConstraint = new TextConstraint(namedEntityLabel,casesensitive);
+        }
+        query.setConstraint("rdfs:label", labelConstraint);
+        
+          LOG.info("Init NamedEntityTaggingEngine instance for the Entityhub");
+        //add the type constraint
+  //  if(types != null && !types.isEmpty()) {
+    //    query.setConstraint(RDF_TYPE.getUnicodeString(), new ReferenceConstraint(types));
+    //}
+     //  query.setConstraint(SpecialFieldEnum.fullText.getUri(), new
+//SimilarityConstraint(extractionContext));
+
+      query.setLimit(Math.max(20,9));
+       QueryResultList<Entity> results = entityhub.findEntities(query);
+       
+         JOptionPane.showMessageDialog(null, results.size());  
+        
+        }
+        catch(Exception e){}
+		
+      /*  log.info(" - {} results returned by query {}", results.size(), results.getQuery());
+        if(results.isEmpty()){ //no results nothing to do
+            return Collections.emptyList();
+        }
+        */
+
         
         //search the suggestions
       /*  Map<NamedEntity,List<Suggestion>> suggestions = new HashMap<NamedEntity,List<Suggestion>>(textAnnotations.size());
