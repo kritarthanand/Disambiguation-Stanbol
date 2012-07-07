@@ -271,10 +271,10 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         ReferencedSite dbpediaReferencedSite=null;
         try{
      // ReferencedSiteManager siteManager=new ReferencedSiteManager();
-        dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
+	 dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
         	String label="Paris"; //the selected text of the TextAnnotation to disambiguate
 			    Collection<String> types=null; //potential types of entities
-   				 String language=""; //the language of the analyzed text
+   				 String language=null; //the language of the analyzed text
     			String extractionContext; //the surrounding text of the extraction
         
         	FieldQuery query =dbpediaReferencedSite.getQueryFactory().createFieldQuery();
@@ -288,25 +288,31 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
             //search labels in the language and without language
             labelConstraint = new TextConstraint(namedEntityLabel,casesensitive,language,null);
         } else {
-            labelConstraint = new TextConstraint(namedEntityLabel,casesensitive);
+           labelConstraint = new TextConstraint(namedEntityLabel,casesensitive);
         }
-        query.setConstraint("rdfs:label", labelConstraint);
+    
+    query.setConstraint(RDFS_LABEL.getUnicodeString(),labelConstraint);
+ //   QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
+       
+        // JOptionPane.showMessageDialog(null, "  "+RDFS_LABEL.getUnicodeString());
+        //query.setConstraint(RDFS_LABEL.getUnicodeString(), labelConstraint);
         
           LOG.info("Init NamedEntityTaggingEngine instance for the Entityhub");
         //add the type constraint
   //  if(types != null && !types.isEmpty()) {
     //    query.setConstraint(RDF_TYPE.getUnicodeString(), new ReferenceConstraint(types));
     //}
-     //  query.setConstraint(SpecialFieldEnum.fullText.getUri(), new
-//SimilarityConstraint(extractionContext));
+      query.setConstraint(SpecialFieldEnum.fullText.getUri(), new SimilarityConstraint(extractionContext));
 
       query.setLimit(Math.max(20,9));
        QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
        
-         JOptionPane.showMessageDialog(null, results.size());  
+         JOptionPane.showMessageDialog(null, results.getQuery());  
         
         }
-        catch(Exception e){}
+        catch(Exception e){
+       JOptionPane.showMessageDialog(null, "Love");  
+        }
 		
       /*  log.info(" - {} results returned by query {}", results.size(), results.getQuery());
         if(results.isEmpty()){ //no results nothing to do
