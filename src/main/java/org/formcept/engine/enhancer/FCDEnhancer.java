@@ -268,11 +268,42 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                     	{
                       		UriRef uri1 = (UriRef) it2.next().getSubject();
                 	    	String name11 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_ENTITY_LABEL);
-				         	
-                	    	
-							 String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
+				    		
+				    		
+								if(name11.compareToIgnoreCase("Paris")==0)
+								 {
+								 Triple l=null;
+      								Iterator<Triple> confidenceTriple =graph.filter(uri1,ENHANCER_CONFIDENCE,null);
+     								 while(confidenceTriple.hasNext())
+    								   {
+         								 l=confidenceTriple.next();
+        							    // confidenceTriple.remove();//remove the existing confidence value(s)
+     								   }
+     								  graph.remove(l);
+  								    Triple I=new TripleImpl(uri1,ENHANCER_CONFIDENCE,LiteralFactory.getInstance().createTypedLiteral(0.33));
+   								 graph.add(I);
+  								    graph.add(new TripleImpl((UriRef)I.getSubject(),new UriRef(NamespaceEnum.dc + "contributor"),literalFactory.createTypedLiteral(this.getClass().getName())));
+									}
+
+								if(name11.compareToIgnoreCase("Paris, Texas")==0)
+								{
+								Triple l=null;
+  								  Iterator<Triple> confidenceTriple =graph.filter(uri1,ENHANCER_CONFIDENCE,null);
+   								 while(confidenceTriple.hasNext())
+     								  {
+     								  	 l=confidenceTriple.next();
+										// confidenceTriple.remove();//remove the existing confidence value(s)
+    								   }
+    								graph.remove(l);   
+   								 Triple I=new TripleImpl(uri1,ENHANCER_CONFIDENCE,LiteralFactory.getInstance().createTypedLiteral(1.0));
+   								 graph.add(I);
+				    			 graph.add(new TripleImpl((UriRef)I.getSubject(),new UriRef(NamespaceEnum.dc + "contributor"),literalFactory.createTypedLiteral(this.getClass().getName())));
+					    		}
+				    		 String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
 							
-                      		 JOptionPane.showMessageDialog(null, "++"+name1+" + "+name11);   
+                      		 JOptionPane.showMessageDialog(null, "The Entity  "+name1+" + "+name11);   
+                      	
+                      		
                       	
                       		subsumed.add(uri1);
                       	}
@@ -281,11 +312,13 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                    textAnnotations.put(savedEntity, subsumed);
                 }
             }
-        } finally {
+        } catch (Exception e) {
          JOptionPane.showMessageDialog(null, "To Tell The caste");   
+         JOptionPane.showMessageDialog(null, e.getMessage());   
                       	
+            }
             ci.getLock().readLock().unlock();
-        }
+        
         ReferencedSite dbpediaReferencedSite=null;
         try{
      // ReferencedSiteManager siteManager=new ReferencedSiteManager();
