@@ -15,6 +15,8 @@
  */
 package org.formcept.engine.enhancer;
 
+
+import static org.apache.commons.lang.StringUtils.getLevenshteinDistance;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
@@ -28,7 +30,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -103,6 +105,7 @@ import org.apache.clerezza.rdf.core.MGraph;
 import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSite;
 import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteException;
 import org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteManager;
+import org.apache.stanbol.entityhub.servicesapi.query.SimilarityConstraint;
 import org.apache.stanbol.entityhub.servicesapi.query.Constraint;
 import org.apache.stanbol.entityhub.servicesapi.query.FieldQuery;
 import org.apache.stanbol.entityhub.servicesapi.query.QueryResultList;
@@ -223,7 +226,11 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         MGraph graph = ci.getMetadata();
         LiteralFactory literalFactory = LiteralFactory.getInstance();
         // Retrieve the existing text annotations (requires read lock)
-       //Map<NamedEntity,List<UriRef>> textAnnotations = new HashMap<NamedEntity,List<UriRef>>();
+       
+      List<String> AllEntities =new ArrayList<String>();
+       //List<String> ToSearchEntities =new ArrayList<String>();
+       
+      Map<SavedEntity,List<UriRef>> textAnnotations = new HashMap<SavedEntity,List<UriRef>>();
         //the language extracted for the parsed content or NULL if not available
         String contentLangauge;
       
@@ -231,99 +238,189 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
 
        ci.getLock().readLock().lock();
         try {
-            contentLangauge = EnhancementEngineHelper.getLanguage(ci);
-        for (Iterator<Triple> it = graph.filter(null, RDF_TYPE, TechnicalClasses.ENHANCER_TEXTANNOTATION); it
-                    .hasNext();) 
-	        {
+           		contentLangauge = EnhancementEngineHelper.getLanguage(ci);
+        		for (Iterator<Triple> it = graph.filter(null, RDF_TYPE, TechnicalClasses.ENHANCER_TEXTANNOTATION); it
+                	    .hasNext();) 
+	        	{
            
-           	     	UriRef uri = (UriRef) it.next().getSubject();
-                    String name = EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
-          if(name==null)
-          {continue;}
+           	  	UriRef uri = (UriRef) it.next().getSubject();
+           //  String name11 = EnhancementEngineHelper.getString(graph, uri, ENHANCER_ENTITY_LABEL);
+           	   String name = EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
+          	
+         		//if(name==null)
+          		//{continue;}
           
-          JOptionPane.showMessageDialog(null, name);  
                
                  	if (graph.filter(uri, DC_RELATION, null).hasNext()) {
                     	// this is not the most specific occurrence of this name: skip
                        	      continue;
                       	}
-               		// NamedEntity namedEntity = NamedEntity.createFromTextAnnotation(graph, uri);
-                	//if(namedEntity != null){
+          
+          			 SavedEntity savedEntity = SavedEntity.createFromTextAnnotation(graph, uri);
+              
+                	if(savedEntity != null){
+                		AllEntities.add(name);
+               				JOptionPane.showMessageDialog(null, "Name="+name);  
+          
                     // This is a first occurrence, collect any subsumed annotations
                     List<UriRef> subsumed = new ArrayList<UriRef>();
-
                     for (Iterator<Triple> it2 = graph.filter(null, DC_RELATION, uri); it2.hasNext();) 
                     	{
                       		UriRef uri1 = (UriRef) it2.next().getSubject();
-                    	String name1 = EnhancementEngineHelper.getString(graph, uri1, DC_TYPE);
-				          JOptionPane.showMessageDialog(null, "++"+name1);   
-
+                	    	String name11 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_ENTITY_LABEL);
+				         	
+                	    	
+							 String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
+							
+                      		 JOptionPane.showMessageDialog(null, "++"+name1+" + "+name11);   
+                      	
                       		subsumed.add(uri1);
-
-                    	}
+                      	}
+                    	//if(c>1) ToSearchEntities.add(name);
                     	
-                    //textAnnotations.put(namedEntity, subsumed);
-                //}
+                   textAnnotations.put(savedEntity, subsumed);
+                }
             }
         } finally {
+         JOptionPane.showMessageDialog(null, "To Tell The caste");   
+                      	
             ci.getLock().readLock().unlock();
         }
         ReferencedSite dbpediaReferencedSite=null;
         try{
      // ReferencedSiteManager siteManager=new ReferencedSiteManager();
-	 dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
-        	String label="Paris"; //the selected text of the TextAnnotation to disambiguate
-			    Collection<String> types=null; //potential types of entities
-   				 String language=null; //the language of the analyzed text
-    			String extractionContext; //the surrounding text of the extraction
+		 dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
+         JOptionPane.showMessageDialog(null, "Fired up");   
+        
+        
+        for(Entry<SavedEntity,List<UriRef>> entry : textAnnotations.entrySet())
+        {
+			
+			SavedEntity savedEntity= entry.getKey();       
+        	String label= savedEntity.getName();//the selected text of the TextAnnotation to disambiguate
+		 	Collection<String> types=null; //potential types of entities
+   			String language=null; //the language of the analyzed text
+    		List<UriRef> subsumed=entry.getValue();
+    		
+    		if(subsumed.size()<=1){continue;}
+    		String extractionContext=findContext(label,AllEntities); //the surrounding text of the extraction
         
         	FieldQuery query =dbpediaReferencedSite.getQueryFactory().createFieldQuery();
-
-
-        Constraint labelConstraint;
-        //TODO: make case sensitivity configurable
-        boolean casesensitive = false;
-        String namedEntityLabel = casesensitive ? label : label.toLowerCase();
-       if(language != null){
-            //search labels in the language and without language
-            labelConstraint = new TextConstraint(namedEntityLabel,casesensitive,language,null);
-        } else {
-           labelConstraint = new TextConstraint(namedEntityLabel,casesensitive);
-        }
+	        Constraint labelConstraint;
+    	    //TODO: make case sensitivity configurable
+        	boolean casesensitive = false;
+        	String SavedEntityLabel = casesensitive ? label : label.toLowerCase();
+      		if(language != null){
+            	//search labels in the language and without language
+            	labelConstraint = new TextConstraint(SavedEntityLabel,casesensitive,language,null);
+        		} else {
+           		labelConstraint = new TextConstraint(SavedEntityLabel,casesensitive);
+        		}
     
-    query.setConstraint(RDFS_LABEL.getUnicodeString(),labelConstraint);
- //   QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
+    		query.setConstraint(RDFS_LABEL.getUnicodeString(),labelConstraint);
+ 			//   QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
        
         // JOptionPane.showMessageDialog(null, "  "+RDFS_LABEL.getUnicodeString());
         //query.setConstraint(RDFS_LABEL.getUnicodeString(), labelConstraint);
         
-          LOG.info("Init NamedEntityTaggingEngine instance for the Entityhub");
+          LOG.info("Init SavedEntityTaggingEngine instance for the Entityhub");
         //add the type constraint
   //  if(types != null && !types.isEmpty()) {
     //    query.setConstraint(RDF_TYPE.getUnicodeString(), new ReferenceConstraint(types));
     //}
-      query.setConstraint(SpecialFieldEnum.fullText.getUri(), new SimilarityConstraint(extractionContext));
-
-      query.setLimit(Math.max(20,9));
-       QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
+      	  query.setConstraint("http://stanbol.apache.org/ontology/entityhub/query#fullText", new SimilarityConstraint(extractionContext));
+		  query.setLimit(Math.max(20,9));
+      	  QueryResultList<Entity> results = dbpediaReferencedSite.findEntities(query);
        
-         JOptionPane.showMessageDialog(null, results.getQuery());  
+         
+ 	      LOG.info(" - {} results returned by query {}", results.size(), results.getQuery());
+          Float maxScore = null;
+          Float maxExactScore = null;
+        
+         JOptionPane.showMessageDialog(null, label+ "  " +results.size());
+         List<Suggestion> matches = new ArrayList<Suggestion>(results.size());
+        //assumes entities are sorted by score
+        for (Iterator<Entity> guesses = results.iterator();guesses.hasNext();) {
+            Suggestion match = new Suggestion(guesses.next());
+            Representation rep = match.getEntity().getRepresentation();
+            Float score = rep.getFirst(RdfResourceEnum.resultScore.getUri(),Float.class);
+            if(maxScore == null){
+                maxScore = score;
+            }
+            Iterator<Text> labels = rep.getText(RDFS_LABEL.getUnicodeString());
+            while(labels.hasNext() && match.getLevenshtein() < 1.0){
+                Text label1 = labels.next();
+                if(language == null || //if the content language is unknown -> accept all labels
+                        label1.getLanguage() == null ||  //accept labels with no language
+                        //and labels in the same language as the content
+                        (language != null && label1.getLanguage().startsWith(language))){
+                    double actMatch = levenshtein(
+                        casesensitive ? label1.getText().toLowerCase() : label1.getText(), 
+                                SavedEntityLabel);
+                    if(actMatch > match.getLevenshtein()){
+                        match.setLevenshtein(actMatch);
+                        match.setMatchedLabel(label1);
+                    }
+                }
+            }
+            if(match.getMatchedLabel() != null){
+                if(match.getLevenshtein() == 1.0){
+                    if(maxExactScore == null){
+                        maxExactScore = score;
+                    }
+                    //normalise exact matches against the best exact score
+                    match.setScore(score.doubleValue()/maxExactScore.doubleValue());
+                } else {
+                    //normalise partial matches against the best match and the
+                    //Levenshtein similarity with the label
+                    match.setScore(score.doubleValue()*match.getLevenshtein()/maxScore.doubleValue());	
+                }
+                matches.add(match);
+                JOptionPane.showMessageDialog(null, match.getMatchedLabel()+"  "+match.getScore());
+                 
+                  			
+  		 } else {
+                LOG.info("No value of {} for Entity {}!",RDFS_LABEL.getUnicodeString(),match.getEntity().getId());
+            }
+        }
+        //now sort the results
+        Collections.sort(matches);
+       //List<Suggestion> m= matches.subList(0, Math.min(matches.size(),numSuggestions))
+		matches=matches.subList(0, Math.min(matches.size(),10));
+		Intersection(matches,subsumed,graph);
+		
+		
+		
+		
+		
+			/*UriRef enhancement; //the original enhancement
+    		UriRef ENHANCER_CONFIDENCE; //the confidence triple
+    		float yourConfidence;
+
+    		Iterator<Triple> confidenceTriple =graph.filter(enhancement,ENHANCER_CONFIDENCE,null);
+    		while(confidenceTriple){
+       			 it.next()
+       			 it.remove();//remove the existing confidence value(s)
+    				}
+
+    //add your own confidence
+
+   			 graph.add(new TripleImpl(
+        	enhancement;ENHANCER_CONFIDENCE;
+        	LiteralFactory.getInstance().createTypedLiteral(yourConfidence));
+			*/
+		
+		}
         
         }
         catch(Exception e){
        JOptionPane.showMessageDialog(null, "Love");  
         }
 		
-      /*  log.info(" - {} results returned by query {}", results.size(), results.getQuery());
-        if(results.isEmpty()){ //no results nothing to do
-            return Collections.emptyList();
-        }
-        */
-
-        
-        //search the suggestions
-      /*  Map<NamedEntity,List<Suggestion>> suggestions = new HashMap<NamedEntity,List<Suggestion>>(textAnnotations.size());
-        for (Entry<NamedEntity,List<UriRef>> entry : textAnnotations.entrySet()) {
+		
+		//search the suggestions
+      /*  Map<SavedEntity,List<Suggestion>> suggestions = new HashMap<SavedEntity,List<Suggestion>>(textAnnotations.size());
+        for (Entry<SavedEntity,List<UriRef>> entry : textAnnotations.entrySet()) {
             try {
                 List<Suggestion> entitySuggestions = computeEntityRecommentations(
                     site, entry.getKey(),entry.getValue(),contentLangauge);
@@ -339,7 +436,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         try {
             RdfValueFactory factory = RdfValueFactory.getInstance();
             Map<String, Representation> entityData = new HashMap<String,Representation>();
-            for(Entry<NamedEntity,List<Suggestion>> entitySuggestions : suggestions.entrySet()){
+            for(Entry<SavedEntity,List<Suggestion>> entitySuggestions : suggestions.entrySet()){
                 List<UriRef> subsumed = textAnnotations.get(entitySuggestions.getKey());
                 List<NonLiteral> annotationsToRelate = new ArrayList<NonLiteral>(subsumed);
                 annotationsToRelate.add(entitySuggestions.getKey().getEntity());
@@ -393,6 +490,64 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
             //ci.getLock().writeLock().unlock();
         }*/
     }
+   protected boolean IntersectionCheck( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph)
+  {
+  	for(int i=0;i<subsumed.size();i++)
+  		{
+  			UriRef uri= subsumed.get(i);
+  			String Name= EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
+  			for(int j=0;j<matches.size();j++)
+  				{
+  					Suggestion H=matches.get(j);
+  					String SuggestName=H.getMatchedLabel().toString();
+  					if(Name.compareToIgnoreCase(SuggestName)==0)
+  						{
+  							return true;
+  						}
+  					
+  				}
+  		} 
+  return false;
+  }
+   
+  protected void Intersection( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph)
+  {
+  	for(int i=0;i<subsumed.size();i++)
+  		{
+  			UriRef uri= subsumed.get(i);
+  			String Name= EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
+          	int c=0;
+  			for(int j=0;j<matches.size();j++)
+  				{
+  					Suggestion H=matches.get(j);
+  					String SuggestName=H.getMatchedLabel().toString();
+  					if(Name.compareToIgnoreCase(SuggestName)==0)
+  						{
+  							/// Remove the one with Uri confidence
+  							/// 
+  							/// Insert the ones with Suggestion Confidence.
+  						}
+  				}
+  		} 
+  }
+   
+  protected String findContext(String label, List<String> AllEntities){
+  		
+  	String a="";
+  	
+  	for(int i=0; i<AllEntities.size();i++)
+  	{
+  		 
+  		if(label.compareToIgnoreCase(AllEntities.get(i))!=0)
+  		{a=a+AllEntities.get(i);}
+  		// JOptionPane.showMessageDialog(null,"iteration"+i+"="+ a);  
+  	}
+     return a;
+   }
+   
+   
+   
+   
     
     /**
      * Activate and read the properties
@@ -430,5 +585,16 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
     public String getServiceURL() {
         return serviceURL;
     }
+
+private  static double levenshtein(String s1, String s2) {
+        if(s1 == null || s2 == null){
+            throw new IllegalArgumentException("NONE of the parsed String MUST BE NULL!");
+        }
+        s1 = StringUtils.trim(s1);
+        s2 = StringUtils.trim(s2);
+        return s1.isEmpty() || s2.isEmpty() ? 0 :
+            1.0 - (((double)getLevenshteinDistance(s1, s2)) / ((double)(Math.max(s1.length(), s2.length()))));
+    }
             
 }
+
