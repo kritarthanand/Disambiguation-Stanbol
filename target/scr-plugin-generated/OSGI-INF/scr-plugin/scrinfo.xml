@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+    <scr:component enabled="true" immediate="true" name="org.formcept.engine.enhancer.FCDEnhancer" activate="activate" deactivate="deactivate">
+        <implementation class="org.formcept.engine.enhancer.FCDEnhancer"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.stanbol.enhancer.servicesapi.EnhancementEngine"/>
+            <provide interface="org.apache.stanbol.enhancer.servicesapi.ServiceProperties"/>
+        </service>
+        <property name="stanbol.enhancer.engine.name" type="String" value="formcept-disambiguator" private="false"/>
+        <property name="org.formcept.engine.enhancer.url" type="String" value="https://www.formcept.com/analyze" private="false"/>
+        <property name="service.vendor" type="String" value="FORMCEPT" private="true"/>
+        <property name="service.pid" value="org.formcept.engine.enhancer.FCDEnhancer" private="false"/>
+        <reference name="siteManager" interface="org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteManager" cardinality="1..1" policy="static" bind="bindSiteManager" unbind="unbindSiteManager" checked="true" strategy="event"/>
+    </scr:component>
+</components>
