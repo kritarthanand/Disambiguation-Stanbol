@@ -234,7 +234,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                  if(savedEntity != null)
                     {
                       AllEntities.add(name);
-               	      JOptionPane.showMessageDialog(null, "Name="+name);  
+               	      //JOptionPane.showMessageDialog(null, "Name="+name);  
                       // This is a first occurrence, collect any subsumed annotations
                       List<UriRef> subsumed = new ArrayList<UriRef>();
                       
@@ -249,7 +249,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
 			     //confidenceTriple.remove();//remove the existing confidence value(s)
      		           }
      			  String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
-			  JOptionPane.showMessageDialog(null, "The Entity  "+name1+" + "+name11);   
+			  //JOptionPane.showMessageDialog(null, "The Entity  "+name1+" + "+name11);   
                       	  subsumed.add(uri1);
                           textAnnotations.put(savedEntity, subsumed);
 	                 }
@@ -258,9 +258,9 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                }  
        catch (Exception e) 
           {
-             JOptionPane.showMessageDialog(null, "To Tell The caste");   
+             //JOptionPane.showMessageDialog(null, "To Tell The caste");   
              LOG.info("zzzError   "+e.getMessage());   
-             JOptionPane.showMessageDialog(null, e.getStackTrace());   
+             //JOptionPane.showMessageDialog(null, e.getStackTrace());   
           }
             ci.getLock().readLock().unlock();
                
@@ -285,7 +285,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
               
                 	if(savedEntity != null){
                 		AllEntities.add(name);
-               				JOptionPane.showMessageDialog(null, "Name="+name);  
+               				//JOptionPane.showMessageDialog(null, "Name="+name);  
           
                     // This is a first occurrence, collect any subsumed annotations
                     
@@ -297,16 +297,16 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
 				 String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
 			////  graph.remove(l);
  				
-                      	JOptionPane.showMessageDialog(null, "The Changes  "+name1+" + "+name11);   
+                      	//JOptionPane.showMessageDialog(null, "The Changes  "+name1+" + "+name11);   
                       	}
                     	
                    
 	}}
         } catch (Exception e) {
-         JOptionPane.showMessageDialog(null, "My Problem");   
+         //JOptionPane.showMessageDialog(null, "My Problem");   
          LOG.info("zzzError   "+e.getMessage());   
 
-         JOptionPane.showMessageDialog(null, e.getStackTrace());   
+         //JOptionPane.showMessageDialog(null, e.getStackTrace());   
                       	
             }
             ci.getLock().readLock().unlock();
@@ -317,7 +317,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         try{
      // ReferencedSiteManager siteManager=new ReferencedSiteManager();
 		 dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
-         JOptionPane.showMessageDialog(null, "Fired up");   
+         //JOptionPane.showMessageDialog(null, "Fired up");   
         
         
         for(Entry<SavedEntity,List<UriRef>> entry : textAnnotations.entrySet())
@@ -355,7 +355,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
            Float maxScore = null;
            Float maxExactScore = null;
         
-           JOptionPane.showMessageDialog(null, label+ "  " +results.size());
+           //JOptionPane.showMessageDialog(null, label+ "  " +results.size());
            List<Suggestion> matches = new ArrayList<Suggestion>(results.size());
         //assumes entities are sorted by score
            for (Iterator<Entity> guesses = results.iterator();guesses.hasNext();) 
@@ -405,7 +405,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                     match.setScore(score.doubleValue()*match.getLevenshtein()/maxScore.doubleValue());	
                   }
                  matches.add(match);
-                 JOptionPane.showMessageDialog(null, match.getMatchedLabel()+"  "+match.getScore());
+                 //JOptionPane.showMessageDialog(null, match.getMatchedLabel()+"  "+match.getScore());
                } 
               else 
                {
@@ -421,9 +421,9 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
          ci.getLock().readLock().lock();		
         try
          {	
-           if(IntersectionCheck(matches,subsumed,graph))
+           if(IntersectionCheck(matches,subsumed,graph,contentLangauge))
             {
-		GainConfidence=Intersection(matches,subsumed,graph,GainConfidence);
+		GainConfidence=Intersection(matches,subsumed,graph,GainConfidence,contentLangauge);
             }
             else
             {
@@ -460,7 +460,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
            try
             {	
              RemoveConfidence(graph,LoseConfidence);
-             JOptionPane.showMessageDialog(null, "seen");
+             //JOptionPane.showMessageDialog(null, "seen");
              AddConfidence(graph,GainConfidence);
             }
           finally
@@ -472,10 +472,10 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         
         }
         catch(Exception e){
-       JOptionPane.showMessageDialog(null, "Love");  
-  JOptionPane.showMessageDialog(null, e.getMessage());  
+       //JOptionPane.showMessageDialog(null, "Love");  
+  //JOptionPane.showMessageDialog(null, e.getMessage());  
 
-       JOptionPane.showMessageDialog(null, e.getStackTrace());  
+       //JOptionPane.showMessageDialog(null, e.getStackTrace());  
 
         }
 		
@@ -499,7 +499,7 @@ protected List<Triple> RemoveNot(List<UriRef> subsumed, MGraph graph,List<Triple
 return LoseConfidence;
 }
 
-   protected boolean IntersectionCheck( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph)
+   protected boolean IntersectionCheck( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph,String contentLangauge)
   {
     for(int i=0;i<subsumed.size();i++)
      {
@@ -512,10 +512,10 @@ return LoseConfidence;
   	 {
   	   Suggestion H=matches.get(j);
   	   String SuggestName=H.getMatchedLabel().toString();
-		JOptionPane.showMessageDialog(null, "text="+Name+"v/s"+SuggestName+" compare "+SuggestName.compareToIgnoreCase(Name));  	
-	   if(SuggestName.compareToIgnoreCase(Name+"@en")==0)
+		//JOptionPane.showMessageDialog(null, "text="+Name+"v/s"+SuggestName+" compare "+SuggestName.compareToIgnoreCase(Name));  	
+	   if(SuggestName.compareToIgnoreCase(Name+"@"+contentLangauge)==0)
   	    {
-		JOptionPane.showMessageDialog(null, "macth="+SuggestName);
+		//JOptionPane.showMessageDialog(null, "macth="+SuggestName);
   	      return true;
   	    }
          }
@@ -523,7 +523,7 @@ return LoseConfidence;
   return false;
   }
    
-  protected List<Triple> Intersection( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph,List<Triple> GainConfidence)
+  protected List<Triple> Intersection( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph,List<Triple> GainConfidence,String contentLangauge)
   {
   // List<Triple> GainConfidence=new ArrayList<Triple>();
   
@@ -538,7 +538,7 @@ return LoseConfidence;
   	  Suggestion H=matches.get(j);
   	  String SuggestName=H.getMatchedLabel().toString();
   	  if(Name==null){continue;}
-          if(SuggestName.compareToIgnoreCase(Name+"@en")==0)
+          if(SuggestName.compareToIgnoreCase(Name+"@"+contentLangauge)==0)
   	   {
  	     Triple I1=new TripleImpl(uri,ENHANCER_CONFIDENCE,LiteralFactory.getInstance().createTypedLiteral(H.getScore()));
 	     Triple I11=new TripleImpl((UriRef)I1.getSubject(),new UriRef(NamespaceEnum.dc + "contributor"),LiteralFactory.getInstance().createTypedLiteral(this.getClass().getName()));
@@ -589,7 +589,7 @@ protected void AddConfidence(MGraph graph, List<Triple> GainConfidence)
   		 
   		if(label.compareToIgnoreCase(AllEntities.get(i))!=0)
   		{a=a+AllEntities.get(i);}
-  		// JOptionPane.showMessageDialog(null,"iteration"+i+"="+ a);  
+  		// //JOptionPane.showMessageDialog(null,"iteration"+i+"="+ a);  
   	}
      return a;
    }

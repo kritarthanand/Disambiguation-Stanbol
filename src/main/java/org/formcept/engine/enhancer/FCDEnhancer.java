@@ -117,7 +117,6 @@ import org.apache.stanbol.entityhub.servicesapi.model.Text;
 import org.apache.stanbol.entityhub.servicesapi.model.rdf.RdfResourceEnum;
 import org.apache.stanbol.entityhub.servicesapi.Entityhub;
 import org.apache.stanbol.entityhub.servicesapi.EntityhubException;
-//import org.apache.stanbol.entityhub.servicesapi.defaults;
 
 
 import org.apache.felix.scr.annotations.Activate;
@@ -207,10 +206,6 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
        String contentLangauge=null;
       
        UriRef DC_RELATION = new UriRef(NamespaceEnum.dc+ "relation");
-
-	//Triple I1=null,I2=null,I11=null,I22=null;
-          //          Triple l1=null,l2=null;int c=0;
-
        List<Triple> LoseConfidence =new ArrayList<Triple>();
        List<Triple> GainConfidence=new ArrayList<Triple>();
        boolean ChangeConfidence=true;
@@ -221,21 +216,15 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
              for (Iterator<Triple> it = graph.filter(null, RDF_TYPE, TechnicalClasses.ENHANCER_TEXTANNOTATION); it.hasNext();) 
 	      {
                  UriRef uri = (UriRef) it.next().getSubject();
-                 //  String name11 = EnhancementEngineHelper.getString(graph, uri, ENHANCER_ENTITY_LABEL);
            	 String name = EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
-          		//if(name==null)
-          		//{continue;}
                  if (graph.filter(uri, DC_RELATION, null).hasNext()) 
                     {
-                    	// this is not the most specific occurrence of this name: skip
                        	 continue;
                     }
                  SavedEntity savedEntity = SavedEntity.createFromTextAnnotation(graph, uri);
                  if(savedEntity != null)
                     {
                       AllEntities.add(name);
-               	      JOptionPane.showMessageDialog(null, "Name="+name);  
-                      // This is a first occurrence, collect any subsumed annotations
                       List<UriRef> subsumed = new ArrayList<UriRef>();
                       
                       for (Iterator<Triple> it2 = graph.filter(null, DC_RELATION, uri); it2.hasNext();) 
@@ -246,10 +235,8 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
      			  while(confidenceTriple.hasNext())
     			   {
                              LoseConfidence.add(confidenceTriple.next());
-			     //confidenceTriple.remove();//remove the existing confidence value(s)
      		           }
      			  String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
-			  JOptionPane.showMessageDialog(null, "The Entity  "+name1+" + "+name11);   
                       	  subsumed.add(uri1);
                           textAnnotations.put(savedEntity, subsumed);
 	                 }
@@ -258,66 +245,13 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                }  
        catch (Exception e) 
           {
-             JOptionPane.showMessageDialog(null, "To Tell The caste");   
+
              LOG.info("zzzError   "+e.getMessage());   
-             JOptionPane.showMessageDialog(null, e.getStackTrace());   
           }
             ci.getLock().readLock().unlock();
-               
-            
-           
-         /*
-
-	ci.getLock().readLock().lock();
-        try {
-             contentLangauge = EnhancementEngineHelper.getLanguage(ci);
-            for (Iterator<Triple> it = graph.filter(null, RDF_TYPE, TechnicalClasses.ENHANCER_TEXTANNOTATION); it.hasNext();) 
-	        {
-           
-           	 UriRef uri = (UriRef) it.next().getSubject();
-           	 String name = EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
-          	
-                if (graph.filter(uri, DC_RELATION, null).hasNext()) {
-                    	// this is not the most specific occurrence of this name: skip
-                       	 continue;
-                    }
-          	 SavedEntity savedEntity = SavedEntity.createFromTextAnnotation(graph, uri);
-              
-                	if(savedEntity != null){
-                		AllEntities.add(name);
-               				JOptionPane.showMessageDialog(null, "Name="+name);  
-          
-                    // This is a first occurrence, collect any subsumed annotations
-                    
-      							
-                    for (Iterator<Triple> it2 = graph.filter(null, DC_RELATION, uri); it2.hasNext();) 
-                    	{
-                      	UriRef uri1 = (UriRef) it2.next().getSubject();
-                	   String name11 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_ENTITY_LABEL);
-				 String name1 = EnhancementEngineHelper.getString(graph, uri1, ENHANCER_CONFIDENCE);
-			////  graph.remove(l);
- 				
-                      	JOptionPane.showMessageDialog(null, "The Changes  "+name1+" + "+name11);   
-                      	}
-                    	
-                   
-	}}
-        } catch (Exception e) {
-         JOptionPane.showMessageDialog(null, "My Problem");   
-         LOG.info("zzzError   "+e.getMessage());   
-
-         JOptionPane.showMessageDialog(null, e.getStackTrace());   
-                      	
-            }
-            ci.getLock().readLock().unlock();
-       */
-
-
         ReferencedSite dbpediaReferencedSite=null;
         try{
-     // ReferencedSiteManager siteManager=new ReferencedSiteManager();
-		 dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
-         JOptionPane.showMessageDialog(null, "Fired up");   
+	dbpediaReferencedSite =siteManager.getReferencedSite("dbpedia");
         
         
         for(Entry<SavedEntity,List<UriRef>> entry : textAnnotations.entrySet())
@@ -355,9 +289,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
            Float maxScore = null;
            Float maxExactScore = null;
         
-           JOptionPane.showMessageDialog(null, label+ "  " +results.size());
            List<Suggestion> matches = new ArrayList<Suggestion>(results.size());
-        //assumes entities are sorted by score
            for (Iterator<Entity> guesses = results.iterator();guesses.hasNext();) 
             {
               Suggestion match = new Suggestion(guesses.next());
@@ -405,7 +337,6 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                     match.setScore(score.doubleValue()*match.getLevenshtein()/maxScore.doubleValue());	
                   }
                  matches.add(match);
-                 JOptionPane.showMessageDialog(null, match.getMatchedLabel()+"  "+match.getScore());
                } 
               else 
                {
@@ -413,11 +344,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
                }
              }
 
-        //now sort the results
         Collections.sort(matches);
-      //matches=matches.subList(0, Math.min(matches.size(),10));
-	    
-
          ci.getLock().readLock().lock();		
         try
          {	
@@ -436,31 +363,13 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
 	      }
 		
 		
-		
-			/*UriRef enhancement; //the original enhancement
-    		UriRef ENHANCER_CONFIDENCE; //the confidence triple
-    		float yourConfidence;
-
-    		Iterator<Triple> confidenceTriple =graph.filter(enhancement,ENHANCER_CONFIDENCE,null);
-    		while(confidenceTriple){
-       			 it.next()
-       			 it.remove();//remove the existing confidence value(s)
-    				}
-
-    //add your own confidence
-
-   			 graph.add(new TripleImpl(
-        	enhancement;ENHANCER_CONFIDENCE;
-        	LiteralFactory.getInstance().createTypedLiteral(yourConfidence));
-			*/
-		
-	  }
+	}
 	
-           ci.getLock().writeLock().lock();
+        ci.getLock().writeLock().lock();
            try
             {	
              RemoveConfidence(graph,LoseConfidence);
-             JOptionPane.showMessageDialog(null, "seen");
+             //JOptionPane.showMessageDialog(null, "seen");
              AddConfidence(graph,GainConfidence);
             }
           finally
@@ -472,11 +381,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         
         }
         catch(Exception e){
-       JOptionPane.showMessageDialog(null, "Love");  
-  JOptionPane.showMessageDialog(null, e.getMessage());  
-
-       JOptionPane.showMessageDialog(null, e.getStackTrace());  
-
+       
         }
 		
     }
@@ -493,8 +398,7 @@ protected List<Triple> RemoveNot(List<UriRef> subsumed, MGraph graph,List<Triple
      			  while(confidenceTriple.hasNext())
     			   {
                              LoseConfidence.remove(confidenceTriple.next());
-			     //confidenceTriple.remove();//remove the existing confidence value(s)
-     		           }
+		           }
 	}
 return LoseConfidence;
 }
@@ -512,11 +416,9 @@ return LoseConfidence;
   	 {
   	   Suggestion H=matches.get(j);
   	   String SuggestName=H.getMatchedLabel().toString();
-		JOptionPane.showMessageDialog(null, "text="+Name+"v/s"+SuggestName+" compare "+SuggestName.compareToIgnoreCase(Name));  	
 	   if(SuggestName.compareToIgnoreCase(Name+"@"+contentLangauge)==0)
   	    {
-		JOptionPane.showMessageDialog(null, "macth="+SuggestName);
-  	      return true;
+	      return true;
   	    }
          }
       } 
@@ -525,8 +427,6 @@ return LoseConfidence;
    
   protected List<Triple> Intersection( List<Suggestion> matches, List<UriRef> subsumed, MGraph graph,List<Triple> GainConfidence,String contentLangauge)
   {
-  // List<Triple> GainConfidence=new ArrayList<Triple>();
-  
    for(int i=0;i<subsumed.size();i++)
      {
        boolean MatchFound=false;
@@ -589,7 +489,6 @@ protected void AddConfidence(MGraph graph, List<Triple> GainConfidence)
   		 
   		if(label.compareToIgnoreCase(AllEntities.get(i))!=0)
   		{a=a+AllEntities.get(i);}
-  		// JOptionPane.showMessageDialog(null,"iteration"+i+"="+ a);  
   	}
      return a;
    }
