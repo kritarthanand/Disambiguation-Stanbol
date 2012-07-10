@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1341920515579
+Bnd-LastModified: 1341922624630
 Build-Jdk: 1.7.0_03
 Built-By: jsk
 Bundle-Description: FORMCEPT Enhancement Engine for Apache Stanbol
@@ -12,23 +12,23 @@ Bundle-Version: 0.0.1.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin
 Export-Package: org.formcept.engine.enhancer;uses:="org.apache.stanbol.e
  nhancer.servicesapi.rdf,org.apache.stanbol.entityhub.servicesapi.model.
- rdf,org.apache.clerezza.rdf.core.access,org.apache.clerezza.rdf.core.im
- pl,org.apache.clerezza.rdf.core,org.osgi.service.component,org.slf4j,or
- g.apache.commons.lang,org.apache.stanbol.enhancer.servicesapi.helper,ja
- vax.swing,org.apache.stanbol.enhancer.servicesapi.impl,org.apache.stanb
- ol.entityhub.servicesapi.site,org.apache.stanbol.entityhub.servicesapi.
- model,org.apache.stanbol.entityhub.servicesapi.query,org.osgi.service.c
- m,org.apache.stanbol.enhancer.servicesapi";version="0.0.1.SNAPSHOT"
-Import-Package: javax.swing,org.apache.clerezza.rdf.core,org.apache.cler
- ezza.rdf.core.access,org.apache.clerezza.rdf.core.impl,org.apache.commo
- ns.lang;version="2.4.0",org.apache.stanbol.enhancer.servicesapi;version
- ="0.10.0",org.apache.stanbol.enhancer.servicesapi.helper;version="0.10.
- 0",org.apache.stanbol.enhancer.servicesapi.impl;version="0.10.0",org.ap
- ache.stanbol.enhancer.servicesapi.rdf;version="0.10.0",org.apache.stanb
- ol.entityhub.servicesapi.model;version="0.10.1",org.apache.stanbol.enti
- tyhub.servicesapi.model.rdf;version="0.10.1",org.apache.stanbol.entityh
- ub.servicesapi.query;version="0.10.1",org.apache.stanbol.entityhub.serv
- icesapi.site;version="0.10.1",org.osgi.service.cm;version="1.3.0",org.o
- sgi.service.component;version="1.1.0",org.slf4j;version="1.6.1"
+ rdf,org.apache.clerezza.rdf.core.access,org.apache.clerezza.rdf.core,or
+ g.apache.clerezza.rdf.core.impl,org.osgi.service.component,org.slf4j,or
+ g.apache.commons.lang,org.apache.stanbol.enhancer.servicesapi.helper,or
+ g.apache.stanbol.enhancer.servicesapi.impl,org.apache.stanbol.entityhub
+ .servicesapi.site,org.apache.stanbol.entityhub.servicesapi.model,org.ap
+ ache.stanbol.entityhub.servicesapi.query,org.osgi.service.cm,org.apache
+ .stanbol.enhancer.servicesapi";version="0.0.1.SNAPSHOT"
+Import-Package: org.apache.clerezza.rdf.core,org.apache.clerezza.rdf.cor
+ e.access,org.apache.clerezza.rdf.core.impl,org.apache.commons.lang;vers
+ ion="2.4.0",org.apache.stanbol.enhancer.servicesapi;version="0.10.0",or
+ g.apache.stanbol.enhancer.servicesapi.helper;version="0.10.0",org.apach
+ e.stanbol.enhancer.servicesapi.impl;version="0.10.0",org.apache.stanbol
+ .enhancer.servicesapi.rdf;version="0.10.0",org.apache.stanbol.entityhub
+ .servicesapi.model;version="0.10.1",org.apache.stanbol.entityhub.servic
+ esapi.model.rdf;version="0.10.1",org.apache.stanbol.entityhub.servicesa
+ pi.query;version="0.10.1",org.apache.stanbol.entityhub.servicesapi.site
+ ;version="0.10.1",org.osgi.service.cm;version="1.3.0",org.osgi.service.
+ component;version="1.1.0",org.slf4j;version="1.6.1"
 Service-Component: OSGI-INF/serviceComponents.xml
 Tool: Bnd-1.50.0
