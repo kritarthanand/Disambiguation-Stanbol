@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1341922624630
+Bnd-LastModified: 1342007686199
 Build-Jdk: 1.7.0_03
 Built-By: jsk
 Bundle-Description: FORMCEPT Enhancement Engine for Apache Stanbol
