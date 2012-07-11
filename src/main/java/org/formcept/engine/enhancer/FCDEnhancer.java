@@ -264,7 +264,7 @@ public class FCDEnhancer extends AbstractEnhancementEngine<IOException,RuntimeEx
         }
     }
 
-
+/* */
 
      protected void ReadEntities(List<Triple> LoseConfidence,List<String> AllEntities, Map<SavedEntity,List<UriRef>> textAnnotations, MGraph graph){
        
