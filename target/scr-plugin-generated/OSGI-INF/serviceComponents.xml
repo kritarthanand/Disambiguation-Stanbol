@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
-    <scr:component enabled="true" immediate="true" name="org.formcept.engine.enhancer.FCDEnhancer" activate="activate" deactivate="deactivate">
-        <implementation class="org.formcept.engine.enhancer.FCDEnhancer"/>
+    <scr:component enabled="true" immediate="true" name="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine" activate="activate" deactivate="deactivate">
+        <implementation class="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine"/>
         <service servicefactory="false">
             <provide interface="org.apache.stanbol.enhancer.servicesapi.EnhancementEngine"/>
             <provide interface="org.apache.stanbol.enhancer.servicesapi.ServiceProperties"/>
         </service>
-        <property name="stanbol.enhancer.engine.name" type="String" value="formcept-disambiguator"/>
-        <property name="org.formcept.engine.enhancer.url" type="String" value="https://www.formcept.com/analyze"/>
-        <property name="service.vendor" type="String" value="FORMCEPT"/>
-        <property name="service.pid" value="org.formcept.engine.enhancer.FCDEnhancer"/>
+        <property name="stanbol.enhancer.engine.name" type="String" value="entity-disambiguator"/>
+        <property name="service.vendor" type="String" value="KK"/>
+        <property name="service.pid" value="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine"/>
         <reference name="siteManager" interface="org.apache.stanbol.entityhub.servicesapi.site.ReferencedSiteManager" cardinality="1..1" policy="static" bind="bindSiteManager" unbind="unbindSiteManager"/>
     </scr:component>
 </components>

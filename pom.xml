@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.formcept</groupId>
-	<artifactId>formcept-enhancer</artifactId>
+	<groupId>org.apache.stanbol</groupId>
+	<artifactId>org.apache.stanbol.enhancer.engine.disambiguation.mlt</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
-	<name>FORMCEPT Enhancement engine</name>
-	<description>FORMCEPT Enhancement Engine for Apache Stanbol</description>
-	<url>http://www.formcept.com</url>
+	<name>Entity Disambiguator</name>
+	<description>Entity Disambiguation Enhancement Engine for Apache Stanbol</description>
+	<url>http://www.google.com</url>
 
 	<build>
 		<plugins>
@@ -21,7 +21,7 @@
 						<!-- Enable this for including your enhancement chain configuration -->
 						<!-- <Install-Path>config</Install-Path> -->
 						<Export-Package>
-							org.formcept.engine.enhancer.*;version=${project.version}
+							org.apache.stanbol.enhancer.engine.disambiguation.mlt.*;version=${project.version}
                         </Export-Package>
 						<Embed-Dependency>
 						</Embed-Dependency>
@@ -39,7 +39,7 @@
 						</goals>
 						<configuration>
 							<properties>
-								<service.vendor>FORMCEPT</service.vendor>
+								<service.vendor>KK</service.vendor>
 							</properties>
 						</configuration>
 					</execution>
@@ -55,8 +55,8 @@
 					<inherited>true</inherited>
 					<configuration>
 						<instructions>
-							<Bundle-DocURL>http://www.formcept.com</Bundle-DocURL>
-							<Bundle-Vendor>FORMCEPT</Bundle-Vendor>
+							<Bundle-DocURL>http://www.google.com</Bundle-DocURL>
+							<Bundle-Vendor>aLLL</Bundle-Vendor>
 							<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 							<_versionpolicy>$${version;===;${@}}</_versionpolicy>
 						</instructions>
@@ -74,7 +74,7 @@
 							</goals>
 							<configuration>
 								<properties>
-									<service.vendor>FORMCEPT</service.vendor>
+									<service.vendor>KKK</service.vendor>
 								</properties>
 							</configuration>
 						</execution>

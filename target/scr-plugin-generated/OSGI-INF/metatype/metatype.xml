@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="OSGI-INF/metatype/metatype">
-    <OCD id="org.formcept.engine.enhancer.FCDEnhancer" name="%org.formcept.engine.enhancer.FCDEnhancer.name" description="%org.formcept.engine.enhancer.FCDEnhancer.description">
-        <AD id="stanbol.enhancer.engine.name" type="String" default="formcept-disambiguator" name="%stanbol.enhancer.engine.name.name" description="%stanbol.enhancer.engine.name.description"/>
-        <AD id="org.formcept.engine.enhancer.url" type="String" default="https://www.formcept.com/analyze" name="%org.formcept.engine.enhancer.url.name" description="%org.formcept.engine.enhancer.url.description"/>
+    <OCD id="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine" name="%org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine.name" description="%org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine.description">
+        <AD id="stanbol.enhancer.engine.name" type="String" default="entity-disambiguator" name="%stanbol.enhancer.engine.name.name" description="%stanbol.enhancer.engine.name.description"/>
     </OCD>
-    <Designate pid="org.formcept.engine.enhancer.FCDEnhancer">
-        <Object ocdref="org.formcept.engine.enhancer.FCDEnhancer"/>
+    <Designate pid="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine">
+        <Object ocdref="org.apache.stanbol.enhancer.engine.disambiguation.mlt.DisambiguatorEngine"/>
     </Designate>
 </metatype:MetaData>
