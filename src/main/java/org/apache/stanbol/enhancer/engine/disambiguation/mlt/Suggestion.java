@@ -29,7 +29,7 @@ public class Suggestion implements Comparable<Suggestion>{
     private double levenshtein = -1;
     private Double score;
     private Text matchedLabel;
-
+    private String URI;
     protected Suggestion(Entity entity){
         this.entity = entity;
     }
@@ -82,6 +82,12 @@ public class Suggestion implements Comparable<Suggestion>{
         this.matchedLabel = matchedLabel;
     }
 
+    protected final String getURI() {
+        return this.URI;
+    }
+    protected final void setURI(String URI) {
+        this.URI = URI;
+    }
 
     /**
      * @return the entity
