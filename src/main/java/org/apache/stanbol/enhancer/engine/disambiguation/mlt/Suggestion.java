@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.formcept.engine.enhancer;
+package org.apache.stanbol.enhancer.engine.disambiguation.mlt;
 
 import org.apache.stanbol.entityhub.servicesapi.model.Entity;
 import org.apache.stanbol.entityhub.servicesapi.model.Text;
@@ -29,7 +29,7 @@ public class Suggestion implements Comparable<Suggestion>{
     private double levenshtein = -1;
     private Double score;
     private Text matchedLabel;
-
+    private String URI;
     protected Suggestion(Entity entity){
         this.entity = entity;
     }
@@ -82,6 +82,12 @@ public class Suggestion implements Comparable<Suggestion>{
         this.matchedLabel = matchedLabel;
     }
 
+    protected final String getURI() {
+        return this.URI;
+    }
+    protected final void setURI(String URI) {
+        this.URI = URI;
+    }
 
     /**
      * @return the entity

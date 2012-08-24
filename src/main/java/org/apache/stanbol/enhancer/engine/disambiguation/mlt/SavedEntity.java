@@ -14,7 +14,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.formcept.engine.enhancer;
+package org.apache.stanbol.enhancer.engine.disambiguation.mlt;
 
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
@@ -32,10 +32,19 @@ public final class SavedEntity {
     private final NonLiteral entity;
     private final String name;
     private final UriRef type;
+    private String URI;
+    private String Context;
+    private int start;
+    private int end;
+    
     private SavedEntity(NonLiteral entity, String name, UriRef type) {
         this.entity = entity;
         this.name = name;
         this.type = type;
+        this.URI=null;
+        this.Context=null;
+        this.start=0;
+        this.end=0;
     }
     /**
      * Getter for the Node providing the information about that entity
@@ -106,4 +115,30 @@ public final class SavedEntity {
     private static String cleanupKeywords(String keywords) {
         return keywords.replaceAll("\\p{P}", " ").trim();
     }
+    
+    public void setURI(String a)
+    {this.URI=a;}
+    
+    public void setContext(String a)
+    {
+    	this.Context=a;
+    }
+    
+
+    public String getURI()
+    {return this.URI;}
+
+    public String getContext()
+    {return this.Context;}
+    
+    public void setIndex(int startIndex,int endIndex)
+    {this.start=startIndex;
+    this.end=endIndex;}
+
+    public int getStart()
+    {return this.start;}
+
+    public int getEnd()
+    {return this.end;}
+  
 }
