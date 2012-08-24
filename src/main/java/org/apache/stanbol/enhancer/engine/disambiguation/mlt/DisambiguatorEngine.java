@@ -16,67 +16,42 @@
 package org.apache.stanbol.enhancer.engine.disambiguation.mlt;
 
 import static org.apache.commons.lang.StringUtils.getLevenshteinDistance;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_TYPE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_TYPE;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_CONFIDENCE;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTION_CONTEXT;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.DC_RELATION;
-import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_START;
 import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_END;
-
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_ENTITY_LABEL;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTED_TEXT;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_SELECTION_CONTEXT;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.ENHANCER_START;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDFS_LABEL;
+import static org.apache.stanbol.enhancer.servicesapi.rdf.Properties.RDF_TYPE;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 import org.apache.clerezza.rdf.core.LiteralFactory;
 import org.apache.clerezza.rdf.core.MGraph;
-import org.apache.clerezza.rdf.core.NonLiteral;
 import org.apache.clerezza.rdf.core.Triple;
 import org.apache.clerezza.rdf.core.UriRef;
-
-import org.apache.clerezza.rdf.core.MGraph;
-import org.apache.clerezza.rdf.core.UriRef;
-import org.apache.clerezza.rdf.core.impl.PlainLiteralImpl;
 import org.apache.clerezza.rdf.core.impl.TripleImpl;
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.stanbol.enhancer.servicesapi.ContentItem;
 import org.apache.stanbol.enhancer.servicesapi.EngineException;
@@ -86,52 +61,24 @@ import org.apache.stanbol.enhancer.servicesapi.ServiceProperties;
 import org.apache.stanbol.enhancer.servicesapi.helper.ContentItemHelper;
 import org.apache.stanbol.enhancer.servicesapi.helper.EnhancementEngineHelper;
 import org.apache.stanbol.enhancer.servicesapi.impl.AbstractEnhancementEngine;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.stanbol.enhancer.servicesapi.Blob;
-import org.apache.stanbol.enhancer.servicesapi.Chain;
-import org.apache.stanbol.enhancer.servicesapi.ChainException;
-import org.apache.stanbol.enhancer.servicesapi.ContentItem;
-import org.apache.stanbol.enhancer.servicesapi.EngineException;
-import org.apache.stanbol.enhancer.servicesapi.EnhancementEngine;
-import org.apache.stanbol.enhancer.servicesapi.InvalidContentException;
-import org.apache.stanbol.enhancer.servicesapi.ServiceProperties;
-import org.apache.stanbol.enhancer.servicesapi.helper.ContentItemHelper;
-import org.apache.stanbol.enhancer.servicesapi.helper.EnhancementEngineHelper;
 import org.apache.stanbol.enhancer.servicesapi.rdf.NamespaceEnum;
-import org.apache.stanbol.enhancer.servicesapi.rdf.OntologicalClasses;
 import org.apache.stanbol.enhancer.servicesapi.rdf.TechnicalClasses;
-
-import org.apache.clerezza.rdf.core.MGraph;
-import org.apache.stanbol.entityhub.servicesapi.site.Site;
-import org.apache.stanbol.entityhub.servicesapi.site.SiteException;
-import org.apache.stanbol.entityhub.servicesapi.site.SiteManager;
-import org.apache.stanbol.entityhub.servicesapi.query.SimilarityConstraint;
-import org.apache.stanbol.entityhub.servicesapi.query.Constraint;
-import org.apache.stanbol.entityhub.servicesapi.query.FieldQuery;
-import org.apache.stanbol.entityhub.servicesapi.query.QueryResultList;
-import org.apache.stanbol.entityhub.servicesapi.query.ReferenceConstraint;
-import org.apache.stanbol.entityhub.servicesapi.query.TextConstraint;
 import org.apache.stanbol.entityhub.servicesapi.model.Entity;
 import org.apache.stanbol.entityhub.servicesapi.model.Representation;
 import org.apache.stanbol.entityhub.servicesapi.model.Text;
 import org.apache.stanbol.entityhub.servicesapi.model.rdf.RdfResourceEnum;
-import org.apache.stanbol.entityhub.servicesapi.Entityhub;
-import org.apache.stanbol.entityhub.servicesapi.EntityhubException;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.ReferenceStrategy;
-import org.apache.felix.scr.annotations.Service;
+import org.apache.stanbol.entityhub.servicesapi.query.Constraint;
+import org.apache.stanbol.entityhub.servicesapi.query.FieldQuery;
+import org.apache.stanbol.entityhub.servicesapi.query.QueryResultList;
+import org.apache.stanbol.entityhub.servicesapi.query.SimilarityConstraint;
+import org.apache.stanbol.entityhub.servicesapi.query.TextConstraint;
+import org.apache.stanbol.entityhub.servicesapi.site.Site;
+import org.apache.stanbol.entityhub.servicesapi.site.SiteException;
+import org.apache.stanbol.entityhub.servicesapi.site.SiteManager;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple Enhancer
@@ -142,11 +89,11 @@ import org.apache.felix.scr.annotations.Service;
 @Service
 @Properties(value = {@Property(name = EnhancementEngine.PROPERTY_NAME, value = "entity-disambiguator")})
 public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,RuntimeException> implements
-        EnhancementEngine, ServiceProperties {
+EnhancementEngine, ServiceProperties {
 
     private static Logger LOG = LoggerFactory.getLogger(DisambiguatorEngine.class);
 
-   
+
     /**
      * Service URL
      */
@@ -166,8 +113,8 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
      */
 
     public static final Set<String> SUPPORTED_MIMETYPES = Collections.singleton(PLAIN_TEXT_MIMETYPE);
-    
-    
+
+
 
 
     public Map<String,Object> getServiceProperties() {
@@ -179,7 +126,7 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
         // check if content is present
         try {
             if ((ContentItemHelper.getText(ci.getBlob()) == null)
-                || (ContentItemHelper.getText(ci.getBlob()).trim().isEmpty())) {
+                    || (ContentItemHelper.getText(ci.getBlob()).trim().isEmpty())) {
                 return CANNOT_ENHANCE;
             }
         } catch (IOException e) {
@@ -190,13 +137,13 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
         return ENHANCE_SYNCHRONOUS;
     }
 
-	/*
+    /*
 	  This function first evaluates all the possible ambiguations of each text annotation detected. the text of all entities detected is used for making a Dbpedia query with all string for MLT that contain all the other entities. The results obtained are used to calcualte new confidence values which are updated in the metadata.
-	 */	
+     */	
     public ArrayList<Triple> RemoveConf;
     public ArrayList<Triple> AddConf;
-    
-    
+
+
 
     public void computeEnhancements(ContentItem ci) throws EngineException {
 
@@ -207,32 +154,23 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
         Map<SavedEntity,List<UriRef>> textAnnotations = new HashMap<SavedEntity,List<UriRef>>();
         String contentLangauge = null;
 
-	
+
         List<Triple> loseConfidence = new ArrayList<Triple>();//List to contain old confidence values that are to removed
         List<Triple> gainConfidence = new ArrayList<Triple>();//List to contain new confidence values to be added to metadata
-        
-        RemoveConf=new ArrayList<Triple>();
-        AddConf=new ArrayList<Triple>();
-        
-        
+
+
         ci.getLock().readLock().lock();
         try {
             contentLangauge = EnhancementEngineHelper.getLanguage(ci);
             readEntities(loseConfidence, allEntities, textAnnotations, graph);
         } catch (Exception e) {
-            //JOptionPane.showMessageDialog(null, "dfnnndd33n");
 
-        	LOG.info(" readEntities" + e.getMessage());
-            
+            LOG.info(" readEntities" + e.getMessage());
+
         }
         ci.getLock().readLock().unlock();
-        
-       // ci.getLock().writeLock().lock();
-        
-        //removeOldConfidenceFromGraph(graph,l);
-        //addNewConfidenceToGraph(graph,w);
-        //ci.getLock().writeLock().unlock();
-        
+
+
         Site dbpediaSite = null;
         try {
             dbpediaSite = siteManager.getSite("dbpedia");
@@ -241,7 +179,7 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
 
                 SavedEntity savedEntity = entry.getKey();
                 String label = savedEntity.getName();// the selected text of the TextAnnotation to
-                                                     // disambiguate
+                // disambiguate
                 Collection<String> types = null; // potential types of entities
                 String language = contentLangauge; // the language of the analyzed text
                 List<UriRef> subsumed = entry.getValue();
@@ -251,20 +189,18 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
                 if (subsumed.size() <= 1) {
                     continue;
                 }
-              // JOptionPane.showMessageDialog(null, " tobaccos  ");
 
-                 String extractionContext=savedEntity.getContext();
-             // 
-            extractionContext = findContext(label, allEntities,extractionContext); // the surrounding text of the
-                 // extraction
+                String extractionContext=savedEntity.getContext();
 
-         //JOptionPane.showMessageDialog(null, "extractionContext="+extractionContext);
+                List<String> L=EntitiesInRange(directoryTextAnotation, (savedEntity.getStart()+savedEntity.getEnd())/2);         
+                List<String> M = getEntititesSelection(label, allEntities,extractionContext); // the surrounding text of the
 
+                extractionContext=unionString(L,M,label);
+                if(extractionContext.equals(""))extractionContext=label;
                 QueryResultList<Entity> results = queryDbpedia(dbpediaSite, savedEntityLabel,
                     language, extractionContext);
                 LOG.info(" - {} results returned by query {}", results.size(), results.getQuery());
-               // JOptionPane.showMessageDialog(null, " dsf  "+results.size()+"kk"+extractionContext);
-                
+
                 List<Suggestion> matches = rankResults(results, casesensitive, language, savedEntityLabel);
                 Collections.sort(matches);
 
@@ -280,14 +216,9 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
                     ci.getLock().readLock().unlock();
                 }
             }
-        //	JOptionPane.showMessageDialog(null, " 11");
-
             ci.getLock().writeLock().lock();
             try {
-           // JOptionPane.showMessageDialog(null, " 22");
-
                 removeOldConfidenceFromGraph(graph, loseConfidence);
-            //	JOptionPane.showMessageDialog(null, " 33");
 
                 addNewConfidenceToGraph(graph, gainConfidence);
             } finally {
@@ -299,9 +230,6 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
         catch (Exception e) {
             LOG.info("Error "+e.getMessage());
             LOG.info("Error "+e.getStackTrace());
-           JOptionPane.showMessageDialog(null, "dfnnnn");
-
-            // JOptionPane.showMessageDialog(null, e.getStackTrace());
 
         }
     }
@@ -317,29 +245,28 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
                 .hasNext();) {
             UriRef uri = (UriRef) it.next().getSubject();
             String selectText = EnhancementEngineHelper.getString(graph, uri, ENHANCER_SELECTED_TEXT);
-            String start = EnhancementEngineHelper.getString(graph, uri, ENHANCER_START);
-            String end = EnhancementEngineHelper.getString(graph, uri, ENHANCER_END);
-            int s=Integer.parseInt(start);
-            int e=Integer.parseInt(end);
-            
-            
-         //if (graph.filter(uri, new UriRef(NamespaceEnum.dc + "relation"), null).hasNext()) {
-           //     continue;
-            //}
-           //JOptionPane.showMessageDialog(null, " ss  "+selectText);
-           String u = EnhancementEngineHelper.getString(graph, uri , ENHANCER_SELECTION_CONTEXT);
-        	
-            
+
+
+            if (graph.filter(uri, new UriRef(NamespaceEnum.dc + "relation"), null).hasNext()) {
+                continue;
+            }
+            JOptionPane.showMessageDialog(null, " ss  "+selectText);
+            String u = EnhancementEngineHelper.getString(graph, uri , ENHANCER_SELECTION_CONTEXT);
+
+
             SavedEntity savedEntity = SavedEntity.createFromTextAnnotation(graph, uri);
             if (savedEntity != null) {
-            	//JOptionPane.showMessageDialog(null, " ss  "+u);
-               // u="United States";
-            	//u=findCon(u,Integer.parseInt(start),Integer.parseInt(end));
-            	savedEntity.setContext(u);
-            	savedEntity.setIndex(Integer.parseInt(start), Integer.parseInt(end));
-            	allEntities.add(selectText);
-            	a.put((s+e)/2, selectText);
-                
+                savedEntity.setContext(u);
+                allEntities.add(selectText);
+                String start = EnhancementEngineHelper.getString(graph, uri, ENHANCER_START);
+                String end = EnhancementEngineHelper.getString(graph, uri, ENHANCER_END);
+                int s=Integer.parseInt(start);
+                int e=Integer.parseInt(end);
+
+
+                savedEntity.setIndex(Integer.parseInt(start), Integer.parseInt(end));
+                directoryTextAnotation.put((s+e)/2, selectText);
+
                 List<UriRef> confidenceUriList = new ArrayList<UriRef>();
                 for (Iterator<Triple> it2 = graph
                         .filter(null, new UriRef(NamespaceEnum.dc + "relation"), uri); it2.hasNext();) {
@@ -349,24 +276,24 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
                     while (confidenceTriple.hasNext()) {
                         loseConfidence.add(confidenceTriple.next());
                     }
-                    
-                    UriRef textAnnotation = uri; //the URI of the processed TextAnnotation
-                    UriRef entityAnnotation = uriAmbiguations; //the URI of the original EntityAnnotation
-                    UriRef copy = new UriRef("urn:enhancement-"
-                            + EnhancementEngineHelper.randomUUID());
-                    
+
+                    // UriRef textAnnotation = uri; //the URI of the processed TextAnnotation
+                    // UriRef entityAnnotation = uriAmbiguations; //the URI of the original EntityAnnotation
+                    //UriRef copy = new UriRef("urn:enhancement-"
+                    //      + EnhancementEngineHelper.randomUUID());
+
                     //List<Triple> triples = new ArrayList<Triple>();
-			//it = graph.filter(entityAnnotation,null,null);
-					int refCount = 0;
-					//while(it.hasNext()){
-					  //  Triple triple = it.next();
-					    //if(DC_RELATION.equals(triple.getPredicate())){
-					      //  refCount++;
-					    //}
-					   //if(triple!=null)
-					    //triples.add(triple);
-					//}
-					/*if(refCount > 1){
+                    //it = graph.filter(entityAnnotation,null,null);
+                    //int refCount = 0;
+                    //while(it.hasNext()){
+                    //  Triple triple = it.next();
+                    //if(DC_RELATION.equals(triple.getPredicate())){
+                    //  refCount++;
+                    //}
+                    //if(triple!=null)
+                    //triples.add(triple);
+                    //}
+                    /*if(refCount > 1){
 					for(Triple triple : triples){
 					/*if(DC_RELATION.equals(triple.getPredicate())){
 					            if(triple.getObject().equals(textAnnotation)){
@@ -387,23 +314,23 @@ public class DisambiguatorEngine extends AbstractEnhancementEngine<IOException,R
 					        }
 					}
 					}*/
-                    
-                    
+
+
                     confidenceUriList.add(uriAmbiguations);
-                    
+
                 }
-textAnnotations.put(savedEntity, confidenceUriList);
+                textAnnotations.put(savedEntity, confidenceUriList);
             }
         }
         return;
     }
 
-/*Is used to query the Dbpedia with a entity as main constraint and then add string of all other entities detected as similarity constraints*/
+    /*Is used to query the Dbpedia with a entity as main constraint and then add string of all other entities detected as similarity constraints*/
 
     protected QueryResultList<Entity> queryDbpedia(Site dbpediaSite,
-                                                   String savedEntityLabel,
-                                                   String language,
-                                                   String extractionContext) throws SiteException {
+        String savedEntityLabel,
+        String language,
+        String extractionContext) throws SiteException {
 
         FieldQuery query = dbpediaSite.getQueryFactory().createFieldQuery();
         Constraint labelConstraint;
@@ -422,11 +349,11 @@ textAnnotations.put(savedEntity, confidenceUriList);
         return dbpediaSite.findEntities(query);
     }
 
-/*If for an entity the Dbpedia query results in suggestion none of which match the already present ambiguations, we go with the ambiguations found earlier that is the ones we have with.*/
+    /*If for an entity the Dbpedia query results in suggestion none of which match the already present ambiguations, we go with the ambiguations found earlier that is the ones we have with.*/
 
     protected List<Triple> unchangedConfidences(List<UriRef> subsumed,
-                                                MGraph graph,
-                                                List<Triple> loseConfidence) {
+        MGraph graph,
+        List<Triple> loseConfidence) {
         for (int i = 0; i < subsumed.size(); i++) {
             UriRef uri = subsumed.get(i);
             Iterator<Triple> confidenceTriple = graph.filter(uri, ENHANCER_CONFIDENCE, null);
@@ -436,11 +363,11 @@ textAnnotations.put(savedEntity, confidenceUriList);
         }
         return loseConfidence;
     }
-/*To convert the values from Dbpedia into score values. */
+    /*To convert the values from Dbpedia into score values. */
     protected List<Suggestion> rankResults(QueryResultList<Entity> results,
-                                           boolean casesensitive,
-                                           String language,
-                                           String savedEntityLabel) {
+        boolean casesensitive,
+        String language,
+        String savedEntityLabel) {
         List<Suggestion> matches = new ArrayList<Suggestion>(results.size());
         Float maxScore = null;
         Float maxExactScore = null;
@@ -457,14 +384,14 @@ textAnnotations.put(savedEntity, confidenceUriList);
             while (labels.hasNext() && match.getLevenshtein() < 1.0) {
                 Text label1 = labels.next();
                 if (language == null || // if the content language is unknown -> accept all labels
-                    label1.getLanguage() == null || // accept labels with no language
-                    // and labels in the same language as the content
-                    (language != null && label1.getLanguage().startsWith(language))) {
+                        label1.getLanguage() == null || // accept labels with no language
+                        // and labels in the same language as the content
+                        (language != null && label1.getLanguage().startsWith(language))) {
                     double actMatch = levenshtein(
                         casesensitive ? label1.getText().toLowerCase() : label1.getText(), savedEntityLabel);
                     if (actMatch > match.getLevenshtein()) {
                         match.setLevenshtein(actMatch);
-						//JOptionPane.showMessageDialog(null, "++"+label1);
+                        //JOptionPane.showMessageDialog(null, "++"+label1);
                         match.setMatchedLabel(label1);
                     }
                 }
@@ -484,13 +411,13 @@ textAnnotations.put(savedEntity, confidenceUriList);
                 matches.add(match);
             } else {
                 LOG.info("No value of {} for Entity {}!", RDFS_LABEL.getUnicodeString(), match.getEntity()
-                        .getId());
+                    .getId());
             }
         }
         return matches;
     }
 
-/*Checks if there is any common elements amongst the ambiguations amongst latest dbpedia query and intial ambiguations*/
+    /*Checks if there is any common elements amongst the ambiguations amongst latest dbpedia query and intial ambiguations*/
 
     protected boolean intersectionCheck(List<Suggestion> matches,
                                         List<UriRef> subsumed,
@@ -500,15 +427,14 @@ textAnnotations.put(savedEntity, confidenceUriList);
             UriRef uri = subsumed.get(i);
 
             UriRef uri1 = EnhancementEngineHelper.getReference(graph, uri,  new UriRef(
-                    NamespaceEnum.fise + "entity-reference")
+                NamespaceEnum.fise + "entity-reference")
                     );
-            
-			//JOptionPane.showMessageDialog(null, " Check= "+uri1.getUnicodeString());
 
-            
+
+
             String selectedText = EnhancementEngineHelper.getString(graph, uri, ENHANCER_ENTITY_LABEL);
-            
-            
+
+
             if (selectedText == null) {
                 continue;
             }
@@ -516,141 +442,165 @@ textAnnotations.put(savedEntity, confidenceUriList);
             for (int j = 0; j < matches.size(); j++) {
                 Suggestion suggestion = matches.get(j);
                 String suggestName = suggestion.getURI();
-                //JOptionPane.showMessageDialog(null, " "+suggestion.getURI());
                 if (suggestName.compareToIgnoreCase(uri1.getUnicodeString()) == 0) return true;
             }
         }
         return false;
     }
 
-	public Map<Integer,String> a= new HashMap<Integer,String>();
-
-	
-	public boolean Cal(int k,int s)
-	{
-		if (Math.abs(k-s)<circle){return true;}
-		return false;
-	}
-	
-	
-	public String fEntities(Map<Integer,String> TooL, int k)
-	{
-		List<String> temp=new ArrayList<String>();
-		
-		for (Entry<Integer,String> entry : TooL.entrySet()) {
-					Integer s = entry.getKey();
-                    String subsumed = entry.getValue();
-                 //   if(Cal(s,k)){AllString=}
-                    
-				}
-			return "";		//if(Cal(f,k))
-	}
+    public Map<Integer,String> directoryTextAnotation= new HashMap<Integer,String>();
 
 
-/*Finds values the lie in intersection of both the set of disambiguations( the one intially suggested and the one from dpedia). Update the confidence values of those and make the confidence values of others as 0 in gainconfidence list*/
+    int radii=23;
+    // Value to be configured
+
+    public boolean toInclude(int k,int s)
+    {
+        if (Math.abs(k-s)<radii&&Math.abs(k-s)>0){return true;}
+        return false;
+    }
+
+
+    public List<String> EntitiesInRange(Map<Integer,String> map, int radius)
+    {
+        List<String> temp=new ArrayList<String>();
+
+        for (Entry<Integer,String> entry : map.entrySet()) {
+            Integer s = entry.getKey();
+            String subs = entry.getValue();
+            if(toInclude(s,radius)){temp.add(subs);}
+        }
+
+        return temp;	//if(Cal(f,k))
+    }
+
+
+    /*Returns a string on appended text annotations seperated by spaces*/
+    protected List<String> getEntititesSelection(String label, List<String> allEntities, String context) {
+        List<String> allEntityString = new ArrayList<String>();
+
+        for (int i = 0; i < allEntities.size(); i++) {
+
+            if (label.compareToIgnoreCase(allEntities.get(i)) != 0&&(context!=null)&&(context.contains(allEntities.get(i)))) {
+                allEntityString.add( allEntities.get(i));
+
+            }
+
+        }
+
+        return allEntityString;
+    }
+
+
+    public String unionString(List<String> a, List<String> b,String h)
+    {
+        Set union=new HashSet();
+
+        union.addAll(a);
+        union.addAll(b);
+        String AllString="";
+
+        Object [] temp=union.toArray();
+        for(int i=0;i<temp.length;i++)
+        {
+            AllString=AllString+" "+(String)temp[i];
+        }
+        return AllString;	
+    }
+
+
+
+    /*Finds values the lie in intersection of both the set of disambiguations( the one intially suggested and the one from dpedia). Update the confidence values of those and make the confidence values of others as 0 in gainconfidence list*/
     protected List<Triple> intersection(List<Suggestion> matches,
-                                        List<UriRef> subsumed,
-                                        MGraph graph,
-                                        List<Triple> gainConfidence,
-                                        String contentLangauge) {
-    	
-    	//JOptionPane.showMessageDialog(null, " intersection");
+        List<UriRef> subsumed,
+        MGraph graph,
+        List<Triple> gainConfidence,
+        String contentLangauge) {
+
         for (int i = 0; i < subsumed.size(); i++) {
             boolean matchFound = false;
             UriRef uri = subsumed.get(i);
-            
+
             UriRef uri1 = EnhancementEngineHelper.getReference(graph, uri,  new UriRef(
-                    NamespaceEnum.fise + "entity-reference")
+                NamespaceEnum.fise + "entity-reference")
                     );
-            
-            //String selectedText = EnhancementEngineHelper.getString(graph, uri, ENHANCER_ENTITY_LABEL);
-            // int c=0;
+
             for (int j = 0; j < matches.size(); j++) {
                 Suggestion suggestion = matches.get(j);
                 String suggestName = suggestion.getURI();
-            	//JOptionPane.showMessageDialog(null, " oo3");
 
                 if (suggestName!=null&&uri1!=null&&suggestName.compareToIgnoreCase(uri1.getUnicodeString()) == 0) {
                     Triple confidenceTriple = new TripleImpl(uri, ENHANCER_CONFIDENCE, LiteralFactory
-                            .getInstance().createTypedLiteral(suggestion.getScore()));
+                        .getInstance().createTypedLiteral(suggestion.getScore()));
                     Triple contributorTriple = new TripleImpl((UriRef) confidenceTriple.getSubject(),
-                            new UriRef(NamespaceEnum.dc + "contributor"), LiteralFactory.getInstance()
-                                    .createTypedLiteral(this.getClass().getName()));
+                        new UriRef(NamespaceEnum.dc + "contributor"), LiteralFactory.getInstance()
+                        .createTypedLiteral(this.getClass().getName()));
                     gainConfidence.add(confidenceTriple);
                     gainConfidence.add(contributorTriple);
                     matchFound = true;
                 }
             }
-        //	JOptionPane.showMessageDialog(null, " 53");
 
             if (!matchFound) {
                 Triple confidenceTriple = new TripleImpl(uri, ENHANCER_CONFIDENCE, LiteralFactory
-                        .getInstance().createTypedLiteral(0.0));
+                    .getInstance().createTypedLiteral(0.0));
                 Triple contributorTriple = new TripleImpl((UriRef) confidenceTriple.getSubject(), new UriRef(
-                        NamespaceEnum.dc + "contributor"), LiteralFactory.getInstance().createTypedLiteral(
-                    this.getClass().getName()));
+                    NamespaceEnum.dc + "contributor"), LiteralFactory.getInstance().createTypedLiteral(
+                        this.getClass().getName()));
                 gainConfidence.add(confidenceTriple);
                 gainConfidence.add(contributorTriple);
             }
         }
-    	//JOptionPane.showMessageDialog(null, " intersection-REteurn");
 
         return gainConfidence;
     }
-/*Removes the value in lose confidence from the graph*/
+    /*Removes the value in lose confidence from the graph*/
     protected void removeOldConfidenceFromGraph(MGraph graph, List<Triple> loseConfidence) {
         for (int i = 0; i < loseConfidence.size(); i++) {
             Triple elementToRemove = loseConfidence.get(i);
             graph.remove(elementToRemove);
         }
     }
-/* adds the confidence values from gain confidence list to graph*/
+    /* adds the confidence values from gain confidence list to graph*/
     protected void addNewConfidenceToGraph(MGraph graph, List<Triple> gainConfidence) {
         for (int i = 0; i < gainConfidence.size(); i++) {
             Triple elementToAdd = gainConfidence.get(i);
             graph.add(elementToAdd);
         }
     }
-/*Returns a string on appended text annotations seperated by spaces*/
-    protected String findContext(String label, List<String> allEntities, String a) {
+    /*Returns a string on appended text annotations seperated by spaces*/
+    protected String getEntitiesfromContext(String label, List<String> allEntities, String context) {
         String allEntityString = "";
-        //JOptionPane.showMessageDialog(null, "  a= "+a);
 
         for (int i = 0; i < allEntities.size(); i++) {
 
-            if (label.compareToIgnoreCase(allEntities.get(i)) != 0&&(a!=null)&&(a.contains(allEntities.get(i)))) {
+            if (label.compareToIgnoreCase(allEntities.get(i)) != 0&&(context!=null)&&(context.contains(allEntities.get(i)))) {
                 allEntityString = allEntityString + "  "+allEntities.get(i);
             }
-        	//JOptionPane.showMessageDialog(null, "  1a= "+a+"  allE0 "+allEntities.get(i)+"tot  "+allEntityString);
 
         }
-        
+
         return allEntityString;
     }
 
-    protected String findCon(String Context,int a, int b) {
+    protected String deriveSentence(String Context,int a, int b) {
         String allEntityString = "";
         String start=Context.substring(0, a);
         String end=Context.substring(b);
         int s=start.lastIndexOf('.');
         int e=end.indexOf('.');
-       // JOptionPane.showMessageDialog(null, s+" TO dfdake "+e +" sta= "+start+" end= "+end+" a="+a+" b="+b);
-
-        //if (s==e)return Context;
         if(s<0)
         {
-        	 //JOptionPane.showMessageDialog(null, s+" neg S "+b);
-        	if(e<0) return Context; else return Context.substring(0, b+e);
+            if(e<0) return Context; else return Context.substring(0, b+e);
         }
         else
         {
-        	 //Pane.showMessageDialog(null, s+"Pos S "+b);
-        	if(e<0) return Context.substring(s); else return Context.substring(s+1, b+e);
+            if(e<0) return Context.substring(s); else return Context.substring(s+1, b+e);
         }
-        
-        }
-    
-    
+
+    }
+
+
     /**
      * Activate and read the properties
      * 
@@ -668,8 +618,8 @@ textAnnotations.put(savedEntity, confidenceUriList);
         @SuppressWarnings("unchecked")
         Dictionary<String,Object> properties = ce.getProperties();
         // update the service URL if it is defined
-       // if (properties.get(FORMCEPT_SERVICE_URL) != null) {
-         //   this.serviceURL = (String) properties.get(FORMCEPT_SERVICE_URL);
+        // if (properties.get(FORMCEPT_SERVICE_URL) != null) {
+        //   this.serviceURL = (String) properties.get(FORMCEPT_SERVICE_URL);
         //}
     }
 
